@@ -179,12 +179,12 @@ class Generator(nn.Module):
         self.fusion_conv = DSConv3x3(in_channels=64 * 2,
                                      out_channels=64)
 
-        self.seg_heads = nn.ModuleList()
-        for i in range(3):
-            self.seg_heads.append(nn.Conv2d(in_channels=256 // 2 ** i,
-                                            out_channels=out_channels,
-                                            kernel_size=(1, 1)))
-        self.seg_heads.append(self.seg_heads[-1])
+        # self.seg_heads = nn.ModuleList()
+        # for i in range(3):
+        #     self.seg_heads.append(nn.Conv2d(in_channels=256 // 2 ** i,
+        #                                     out_channels=out_channels,
+        #                                     kernel_size=(1, 1)))
+        # self.seg_heads.append(self.seg_heads[-1])
 
     def forward(self, x):
         x1 = self.conv1(x)
@@ -208,12 +208,13 @@ class Generator(nn.Module):
         x_boundary_mask = self.mask_conv(x_boundary)
 
         x_fusion = torch.cat([x_skeleton, x_boundary], dim=1)
-        x_fusion_mask = self.mask_conv(self.fusion_conv(x_fusion))
+        # Segmentation-Head
+        x_seg_mask = self.mask_conv(self.fusion_conv(x_fusion))
 
         if self.is_deepsup:
             pass
         else:
-            return x_skeleton_mask, x_boundary_mask, x_fusion_mask
+            return x_skeleton_mask, x_boundary_mask, x_seg_mask
 
 
 if __name__ == '__main__':

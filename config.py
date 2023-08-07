@@ -1,3 +1,13 @@
+class Arguments(object):
+    def __init__(self,
+                 path,
+                 img_size=(256, 256),
+                 n_epochs=70,
+                 ):
+        self.img_size = img_size
+        self.n_epochs = n_epochs
+
+
 class Configure(object):
     def __init__(self,
                  in_channels,

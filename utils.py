@@ -52,8 +52,9 @@ def get_data(path, img_size=(256, 256)):
 
     return X, y
 
-# if __name__ == '__main__':
-#     path = '/Users/dawn/Desktop/GSAL/data/ISIC2016_Segmentation'
-#     X, y = get_data(path)
-#     print(X.shape)
-#     print(y.shape)
+dataloader =
+if __name__ == '__main__':
+    path = '/Users/dawn/Desktop/GSAL/data/ISIC2016_Segmentation'
+    X, y = get_data(path)
+    print(X.shape)
+    print(y.shape)

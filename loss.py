@@ -41,7 +41,7 @@ class AdptWeightBCEDiceLoss(nn.Module):
         pass
     def forward(self, y_pred, y_target):
         weight = 1 + 5*torch.abs(F.avg_pool2d(y_target, kernel_size=31, stride=1, padding=15) - y_target)
-        bce = F.binary_cross_entropy_with_logits(y_pred, y_target, reduce='none')
+        bce = F.binary_cross_entropy_with_logits(y_pred, y_target)
         w_bce = ((weight * bce).sum(dim=(2, 3)) + self.smooth) / (weight.sum(dim=(2, 3)) + self.smooth)
 
         y_pred = torch.sigmoid(y_pred)
@@ -49,7 +49,17 @@ class AdptWeightBCEDiceLoss(nn.Module):
         intersection = ((y_pred * y_target) * weight).sum(dim=(2, 3))
         union = ((y_pred + y_target) * weight).sum(dim=(2, 3))
         w_iou = 1.0 - (intersection + 1 + self.smooth) / (union - intersection + 1 + self.smooth)
+        B, C, H, W = y_pred.shape
+        mean_pred = y_pred.mean(dim=(2, 3)).view(B, C, 1, 1).repeat(1, 1, H, W)
+        phi_pred = y_pred - mean_pred
+        B, C, H, W = y_target.shape
+        mean_target = y_target.mean(dim=(2, 3)).view(B, C, 1, 1).repeat(1, 1, H, W)
+        phi_target = y_target - mean_target
 
-        mpred = y_pred.mean(dim=(2, 3))
+
+
+
+
+        pass
 
         return (w_bce + w_iou).mean()
