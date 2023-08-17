@@ -1,4 +1,7 @@
 class Arguments(object):
+    '''
+        Training arguments
+    '''
     def __init__(self,
                  path,
                  root,
@@ -22,6 +25,9 @@ class Arguments(object):
 
 
 class Configure(object):
+    '''
+        Model configuration
+    '''
     def __init__(self,
                  in_channels,
                  out_channels,

@@ -167,6 +167,7 @@ def train(args):
     # G_optim = torch.optim.RMSprop(G.parameters(), lr=args.lr, weight_decay=1e-8, momentum=0.9)
     # D_ske_optim = torch.optim.RMSprop(D_ske.parameters(), lr=args.lr, weight_decay=1e-8, momentum=0.9)
     # D_bound_optim = torch.optim.RMSprop(D_bound.parameters(), lr=args.lr, weight_decay=1e-8, momentum=0.9)
+
     G_optim = torch.optim.Adam(G.parameters(), lr=args.lr, betas=(args.beta1, 0.999))
     D_ske_optim = torch.optim.Adam(D_ske.parameters(), lr=args.lr, betas=(args.beta1, 0.999))
     D_bound_optim = torch.optim.Adam(D_bound.parameters(), lr=args.lr, betas=(args.beta1, 0.999))
@@ -215,7 +216,7 @@ def train(args):
 
             '''
                 Train skeleton-like discriminator
-                    argmin (BCE(D(x), 1) + BCE(D(G(z)), 1))
+                    argmin (BCE(D_ske(x), real_label) + BCE(D_ske(G(z)), fake_label) + L1)
             '''
             D_ske.zero_grad()
             ske_real, ske_fake = dt_ske, x_ske
@@ -251,7 +252,10 @@ def train(args):
             errD_ske = errD_ske_real + errD_ske_fake + errD_ske_l1
 
             D_ske_optim.step()
-
+            '''
+                Train boundary-like discriminator
+                    argmin (BCE(D_bound(x), real_label) + BCE(D_bound(G(z)), fake_label) + L1)
+            '''
             D_bound.zero_grad()
             bound_real, bound_fake = dt_bound, x_bound
             labels.fill_(real_label)
@@ -284,6 +288,12 @@ def train(args):
 
             D_bound_optim.step()
 
+            '''
+                Train Generator
+                    argmin(BCE(D_ske(G(z)), real_label) + BCE(D_bound(G(z)), real_label) + L_local + L_seg)
+                    L_local = BCE(x_ske, dt_ske) + BCE(x_bound, dt_bound) 
+                    L_seg = WBCE(x_seg, gts)
+            '''
             G.zero_grad()
             # Fill hard real label
             labels.fill_(0.)
