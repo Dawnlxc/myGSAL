@@ -17,19 +17,25 @@ class DistanceTransform(nn.Module):
         super(DistanceTransform, self).__init__()
 
     def forward(self, masks):
-        masks = masks / np.max(masks)
-        dis_map = distance(masks)
-        # Normalize
-        skeleton = dis_map / np.max(dis_map)
-        boundary = masks - skeleton
+        skeleton = torch.zeros_like(masks)
+        boundary = torch.zeros_like(masks)
+        for i in range(len(masks)):
+            dis_map = torch.tensor(distance(masks[i].cpu()), dtype=torch.float32)
+            # Normalize
+            skeleton[i] = dis_map / torch.max(dis_map)
+            boundary[i] = masks[i] - skeleton[i]
+            # plt.imshow(skeleton[i].detach().numpy()[0, :, :], cmap='gray')
+            # plt.show()
+        skeleton = skeleton.detach()
+        boundary = boundary.detach()
         return skeleton, boundary
+
 
 # if __name__ == '__main__':
 #     path = '/Users/dawn/Desktop/GSAL/data/ISIC2016_Segmentation/masks/ISIC_0000000_Segmentation.png'
 #     img = cv2.imread(path, -1)
-#     img = np.expand_dims(img, axis=-1)
-#
-#     s, b = DistanceTransform()(img)
-#     cv2.imshow('Distance Map', b)
+#     # s, b = DistanceTransform()(img)
+#     dis_map = np.transpose(distance(img), (2, 0, 1))
+#     cv2.imshow('Distance Map', dis_map)
 #     cv2.waitKey(0)
 #     cv2.destroyAllWindows()

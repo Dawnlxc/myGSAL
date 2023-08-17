@@ -1,11 +1,24 @@
 class Arguments(object):
     def __init__(self,
                  path,
+                 root,
                  img_size=(256, 256),
                  n_epochs=70,
+                 batch_size=16,
+                 device='cpu',
+                 lr=1e-4,
+                 beta1=0.5,
+                 lamb=1,
                  ):
+        self.path = path
+        self.root = root
         self.img_size = img_size
         self.n_epochs = n_epochs
+        self.batch_size = batch_size
+        self.device = device
+        self.lr = lr
+        self.beta1 = beta1
+        self.lamb = lamb
 
 
 class Configure(object):

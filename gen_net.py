@@ -169,15 +169,31 @@ class Generator(nn.Module):
             self.skeleton.append(UpsampleBlock(1024 // 2 ** i, 256 // 2 ** i))
         self.skeleton.append(UpsampleBlock(128, 64))
 
-        self.boundary = copy.deepcopy(self.skeleton)
+        # self.boundary = copy.deepcopy(self.skeleton)
+        self.boundary = nn.ModuleList()
+        for i in range(3):
+            self.boundary.append(UpsampleBlock(1024 // 2 ** i, 256 // 2 ** i))
+        self.boundary.append(UpsampleBlock(128, 64))
+
         # self.outc = nn.Conv2d(in_channels=64 * 3,
         #                       out_channels=out_channels,
         #                       kernel_size=(1, 1))
-        self.mask_conv = nn.Conv2d(in_channels=64,
-                                   out_channels=out_channels,
-                                   kernel_size=(1, 1))
+        self.ske_mask_conv = nn.Conv2d(in_channels=64,
+                                       out_channels=out_channels,
+                                       kernel_size=(1, 1))
+
+        self.bound_mask_conv = nn.Conv2d(in_channels=64,
+                                         out_channels=out_channels,
+                                         kernel_size=(1, 1))
+
+        self.seg_mask_conv = nn.Conv2d(in_channels=64,
+                                       out_channels=out_channels,
+                                       kernel_size=(1, 1))
+
         self.fusion_conv = DSConv3x3(in_channels=64 * 2,
                                      out_channels=64)
+
+        self.act = nn.Sigmoid()
 
         # self.seg_heads = nn.ModuleList()
         # for i in range(3):
@@ -204,17 +220,17 @@ class Generator(nn.Module):
             x_skeleton = self.skeleton[n_stages - (i+1)](x_skeleton, skip)
             x_boundary = self.boundary[n_stages - (i+1)](x_boundary, skip)
 
-        x_skeleton_mask = self.mask_conv(x_skeleton)
-        x_boundary_mask = self.mask_conv(x_boundary)
+        x_skeleton_mask = self.ske_mask_conv(x_skeleton)
+        x_boundary_mask = self.bound_mask_conv(x_boundary)
 
         x_fusion = torch.cat([x_skeleton, x_boundary], dim=1)
         # Segmentation-Head
-        x_seg_mask = self.mask_conv(self.fusion_conv(x_fusion))
+        x_seg_mask = self.act(self.seg_mask_conv(self.fusion_conv(x_fusion)))
 
         if self.is_deepsup:
             pass
         else:
-            return x_skeleton_mask, x_boundary_mask, x_seg_mask
+            return self.act(x_skeleton_mask), self.act(x_boundary_mask), x_seg_mask
 
 
 if __name__ == '__main__':
@@ -222,5 +238,6 @@ if __name__ == '__main__':
     model = Generator(3, 1)
     # print(model)
     out = model(test)
+    print(out[0].shape, out[1].shape, out[2].shape)
 
 
